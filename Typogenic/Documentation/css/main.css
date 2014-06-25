@@ -1,0 +1,43 @@
+.container {
+	width: auto;
+	max-width: 750px;
+	padding: 0 15px;
+}
+
+#index ul {
+	list-style-type: square;
+}
+
+.bs-callout {
+	margin: 20px 0;
+	padding: 20px;
+	border-left: 3px solid rgb(238, 238, 238);
+}
+
+.bs-callout-info {
+	background-color: rgb(244, 248, 250);
+	border-color: rgb(188, 232, 241);
+}
+
+.bs-callout h4 {
+	margin-top: 0;
+	margin-bottom: 5px;
+}
+
+.bs-callout-info h4 {
+	color: rgb(58, 135, 173);
+}
+
+#footer {
+	text-align: center;
+	height: 60px;
+	background-color: #f5f5f5;
+}
+
+.container .credit {
+	margin: 20px 0;
+}
+
+.img-center {
+	margin: 0 auto;
+}

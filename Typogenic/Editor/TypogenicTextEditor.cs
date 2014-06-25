@@ -1,0 +1,129 @@
+﻿using UnityEngine;
+using UnityEditor;
+using System;
+
+[CustomEditor(typeof(TypogenicText)), CanEditMultipleObjects]
+public class TypogenicTextEditor : Editor
+{
+	protected SerializedProperty m_Font;
+	protected SerializedProperty m_Text;
+	protected SerializedProperty m_Size;
+	protected SerializedProperty m_Leading;
+	protected SerializedProperty m_Tracking;
+	protected SerializedProperty m_ParagraphSpacing;
+	protected SerializedProperty m_WordWrap;
+	protected SerializedProperty m_Alignment;
+	protected SerializedProperty m_ColorMode;
+	protected SerializedProperty m_ColorTopLeft;
+	protected SerializedProperty m_ColorTopRight;
+	protected SerializedProperty m_ColorBottomLeft;
+	protected SerializedProperty m_ColorBottomRight;
+	protected SerializedProperty m_GenerateNormals;
+
+	Vector2 scrollText;
+
+	void OnEnable()
+	{
+		m_Font = serializedObject.FindProperty("Font");
+		m_Text = serializedObject.FindProperty("Text");
+		m_Size = serializedObject.FindProperty("Size");
+		m_Leading = serializedObject.FindProperty("Leading");
+		m_Tracking = serializedObject.FindProperty("Tracking");
+		m_ParagraphSpacing = serializedObject.FindProperty("ParagraphSpacing");
+		m_WordWrap = serializedObject.FindProperty("WordWrap");
+		m_Alignment = serializedObject.FindProperty("Alignment");
+		m_ColorMode = serializedObject.FindProperty("ColorMode");
+		m_ColorTopLeft = serializedObject.FindProperty("ColorTopLeft");
+		m_ColorTopRight = serializedObject.FindProperty("ColorTopRight");
+		m_ColorBottomLeft = serializedObject.FindProperty("ColorBottomLeft");
+		m_ColorBottomRight = serializedObject.FindProperty("ColorBottomRight");
+		m_GenerateNormals = serializedObject.FindProperty("GenerateNormals");
+	}
+
+	public override void OnInspectorGUI()
+	{
+		serializedObject.Update();
+
+		EditorGUIUtility.LookLikeControls();
+
+		EditorGUILayout.PropertyField(m_Font);
+		EditorGUILayout.PropertyField(m_GenerateNormals);
+
+		EditorGUILayout.PrefixLabel(String.Format("Text (w: {0:F2}, h: {1:F2})", ((TypogenicText)target).Width, ((TypogenicText)target).Height));
+		scrollText = EditorGUILayout.BeginScrollView(scrollText, GUILayout.MinHeight(85f), GUILayout.MaxHeight(200f));
+		m_Text.stringValue = EditorGUILayout.TextArea(m_Text.stringValue, GUILayout.MinHeight(85f), GUILayout.MaxHeight(200f));
+		EditorGUILayout.EndScrollView();
+		EditorGUILayout.PropertyField(m_Size, new GUIContent("Character Size"));
+		EditorGUILayout.PropertyField(m_Tracking, new GUIContent("Character Spacing (Tracking)"));
+		EditorGUILayout.PropertyField(m_Leading, new GUIContent("Line Spacing (Leading)"));
+		EditorGUILayout.PropertyField(m_ParagraphSpacing);
+		EditorGUILayout.PropertyField(m_Alignment);
+		EditorGUILayout.PropertyField(m_WordWrap);
+
+		EditorGUILayout.Space();
+		EditorGUILayout.PropertyField(m_ColorMode);
+
+		if (m_ColorMode.enumValueIndex == (int)TColorMode.Single)
+		{
+			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Color (RGB + A)"));
+		}
+		else if (m_ColorMode.enumValueIndex == (int)TColorMode.VerticalGradient)
+		{
+			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Top Color (RGB + A)"));
+			EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Bottom Color (RGB + A)"));
+		}
+		else if (m_ColorMode.enumValueIndex == (int)TColorMode.HorizontalGradient)
+		{
+			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Left Color (RGB + A)"));
+			EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Right Color (RGB + A)"));
+		}
+		else if (m_ColorMode.enumValueIndex == (int)TColorMode.QuadGradient)
+		{
+			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Top Left Color (RGB + A)"));
+			EditorGUILayout.PropertyField(m_ColorTopRight, new GUIContent("Top Right Color (RGB + A)"));
+			EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Bottom Left Color (RGB + A)"));
+			EditorGUILayout.PropertyField(m_ColorBottomRight, new GUIContent("Bottom Right Color (RGB + A)"));
+		}
+
+		if (serializedObject.ApplyModifiedProperties() || Event.current.commandName == "UndoRedoPerformed")
+		{
+			foreach (TypogenicText t in targets)
+			{
+				if (t.enabled && t.gameObject.activeInHierarchy && PrefabUtility.GetPrefabType(target) != PrefabType.Prefab)
+					t.RebuildMesh();
+			}
+		}
+	}
+
+	void OnSceneGUI()
+	{
+		TypogenicText src = (TypogenicText)target;
+
+		if (src.WordWrap > 0f)
+		{
+			Vector3 v1 = src.transform.position; // top left
+			Vector3 v2 = v1 + src.transform.rotation * new Vector3(src.WordWrap, 0f, 0f); // top right
+			Vector3 v3 = v1 + src.transform.rotation * new Vector3(0f, -src.Height, 0f); // bottom left
+			Vector3 v4 = v3 + src.transform.rotation * new Vector3(src.WordWrap, 0f, 0f); // bottom right
+			Handles.color = Color.yellow;
+			Handles.DrawLine(v1, v2);
+			Handles.DrawLine(v1, v3);
+			Handles.DrawLine(v4, v3);
+			Handles.DrawLine(v2, v4);
+		}
+	}
+
+	[MenuItem("GameObject/Create Other/Typogenic Text", false, 1500)]
+	public static void CreateNewTypogenicText()
+	{
+		GameObject gameObject = new GameObject("New Typogenic Text");
+		gameObject.AddComponent<TypogenicText>();
+		Selection.objects = new GameObject[1] { gameObject };
+		EditorApplication.ExecuteMenuItem("GameObject/Move To View");
+
+		#if UNITY_3_4 || UNITY_3_5 || UNITY_4_0 || UNITY_4_0_1 || UNITY_4_1 || UNITY_4_2
+		#else
+		Undo.RegisterCreatedObjectUndo(gameObject, "Created New Typogenic Text");
+		#endif
+	}
+}
