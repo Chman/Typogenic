@@ -71,6 +71,17 @@ public class TypogenicText : MonoBehaviour
 		RebuildMesh();
 	}
 
+	public void Set(string text = null, float? size = null, float? leading = null, float? tracking = null, float? paragraphSpacing = null, TTextAlignment? alignement = null, float? wordWrap = null)
+	{
+		Text = text ?? Text;
+		Size = size ?? Size;
+		Leading = leading ?? Leading;
+		Tracking = tracking ?? Tracking;
+		ParagraphSpacing = paragraphSpacing ?? ParagraphSpacing;
+		Alignment = alignement ?? Alignment;
+		WordWrap = wordWrap ?? WordWrap;
+	}
+
 	public void RebuildMesh()
 	{
 		if (Font == null)
