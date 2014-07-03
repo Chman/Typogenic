@@ -10,7 +10,9 @@ Instructions
 
 Copy the `Typogenic` folder into your project or import `Typogenic.unitypackage`. You can also import it from the [Asset Store](https://www.assetstore.unity3d.com/en/#!/content/19182).
 
-Read the online [documentation](http://thomashourdel.com/typogenic/doc/) for a more information.
+Read the online [documentation](http://thomashourdel.com/typogenic/doc/) for more information.
+
+Pull requests are welcomed !
 
 License
 -------
