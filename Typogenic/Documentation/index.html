@@ -51,6 +51,7 @@
 							<li><a href="#create-font">Creating a New Font</a></li>
 							<li><a href="#text-component">Text Component</a></li>
 							<li><a href="#font-materials">Font Materials</a></li>
+							<li><a href="#scripting">Scripting Support</a></li>
 							<li><a href="#tips">Tips &amp; Tricks</a></li>
 						</ul>
 						<li><a href="#support">Contact &amp; Support</a></li>
@@ -159,6 +160,20 @@
 				<p><strong>Thickness</strong> controls the font weight to make the text bolder or thinner, up to a certain point.</p>
 
 				<p>You can also enable <strong>Outlines</strong> and control their <strong>Thickness</strong> and <strong>Color</strong>. The <strong>Thickness</strong> parameter will be limited by the spread amount used in the <strong>Distance Field</strong> panel of Littera. You can offset the <strong>Outlines</strong> by playing with both <strong>Thickness</strong> values.</p>
+
+				<p class="text-center"><a href="#wrap">Back to top</a></p>
+
+				<!-- Scripting Support -->
+				<h3 id="scripting">Scripting Support</h3>
+
+				<p>Typogenic comes with a full public interface to interact with the component at runtime. Don't forget to call <code>RebuildMesh()</code> to apply any change you've made.</p>
+
+				<pre>var component = GetComponent&lt;TypogenicText&gt;();
+component.Text = "Lorem ipsum";
+component.Size = 24f;
+component.RebuildMesh();</pre>
+
+				<p>Take a look at the <strong>TypogenicText.cs</strong> file for a list of public methods and properties, or use your favorite IDE with auto-completion.</p>
 
 				<p class="text-center"><a href="#wrap">Back to top</a></p>
 
