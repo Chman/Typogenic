@@ -49,6 +49,45 @@ public class TypogenicText : MonoBehaviour
 	protected List<Color> m_Colors = new List<Color>();
 	protected List<int> m_Indices = new List<int>();
 
+	// Not the best way to do it but Unity can't serialize properties,
+	// so it'll do the job just fine for now.
+	string _text;
+	float _size;
+	float _leading;
+	float _tracking;
+	float _paragraphSpacing;
+	float _wordWrap;
+	TTextAlignment _alignment;
+	TColorMode _colorMode;
+	Color _colorTopLeft;
+	Color _colorTopRight;
+	Color _colorBottomLeft;
+	Color _colorBottomRight;
+	bool _generateNormals;
+
+	public bool AutoRebuild = true;
+	public bool IsDirty
+	{
+		get
+		{
+			if (Text != _text) return true;
+			else if (Size != _size) return true;
+			else if (Leading != _leading) return true;
+			else if (Tracking != _tracking) return true;
+			else if (ParagraphSpacing != _paragraphSpacing) return true;
+			else if (WordWrap != _wordWrap) return true;
+			else if (Alignment != _alignment) return true;
+			else if (ColorMode != _colorMode) return true;
+			else if (ColorTopLeft != _colorTopLeft) return true;
+			else if (ColorTopRight != _colorTopRight) return true;
+			else if (ColorBottomLeft != _colorBottomLeft) return true;
+			else if (ColorBottomRight != _colorBottomRight) return true;
+			else if (GenerateNormals != _generateNormals) return true;
+
+			return false;
+		}
+	}
+
 	void OnEnable()
 	{
 		GetComponent<MeshFilter>().mesh = m_Mesh = new Mesh();
@@ -71,6 +110,12 @@ public class TypogenicText : MonoBehaviour
 		RebuildMesh();
 	}
 
+	void LateUpdate()
+	{
+		if (AutoRebuild && IsDirty)
+			RebuildMesh();
+	}
+
 	public void Set(string text = null, float? size = null, float? leading = null, float? tracking = null, float? paragraphSpacing = null, TTextAlignment? alignement = null, float? wordWrap = null)
 	{
 		Text = text ?? Text;
@@ -86,6 +131,20 @@ public class TypogenicText : MonoBehaviour
 	{
 		if (Font == null)
 			return;
+
+		_text = Text;
+		_size = Size;
+		_leading = Leading;
+		_tracking = Tracking;
+		_paragraphSpacing = ParagraphSpacing;
+		_wordWrap = WordWrap;
+		_alignment = Alignment;
+		_colorMode = ColorMode;
+		_colorTopLeft = ColorTopLeft;
+		_colorTopRight = ColorTopRight;
+		_colorBottomLeft = ColorBottomLeft;
+		_colorBottomRight = ColorBottomRight;
+		_generateNormals = GenerateNormals;
 
 		m_Mesh.Clear();
 
