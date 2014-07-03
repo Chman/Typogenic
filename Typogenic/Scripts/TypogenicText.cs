@@ -41,6 +41,8 @@ public class TypogenicText : MonoBehaviour
 	public float Width;
 	public float Height;
 
+	public Mesh Mesh { get { return m_Mesh; } }
+
 	protected Mesh m_Mesh;
 	protected List<Vector3> m_Vertices = new List<Vector3>();
 	protected List<Vector2> m_UVs = new List<Vector2>();
