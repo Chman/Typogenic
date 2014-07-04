@@ -48,7 +48,7 @@ public class TypogenicText : MonoBehaviour
 	protected List<Color> m_Colors = new List<Color>();
 	protected List<int> m_Indices = new List<int>();
 
-	// Not the best way to track changes it but Unity can't serialize properties,
+	// Not the best way to track changes but Unity can't serialize properties,
 	// so it'll do the job just fine for now.
 	string _text;
 	float _size;
