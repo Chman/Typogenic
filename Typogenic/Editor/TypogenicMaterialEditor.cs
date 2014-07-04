@@ -29,6 +29,10 @@ public class TypogenicMaterialEditor : MaterialEditor
 		string[] inKeywords = material.shaderKeywords;
 		List<string> outKeywords = new List<string>();
 
+		// GLOBAL_MULTIPLIER
+		Color globalMultiplier = ColorProperty(properties["_GlobalMultiplierColor"], "Global Color Multiplier (RGB + Alpha)");
+		outKeywords.Add((globalMultiplier == Color.white) ? "GLOBAL_MULTIPLIER_OFF" : "GLOBAL_MULTIPLIER_ON");
+
 		TextureProperty(properties["_MainTex"], "Main Texture (Alpha8)", false);
 		FloatProperty(properties["_Smoothness"], "Smoothness (Antialiasing)");
 		properties["_Smoothness"].floatValue = Mathf.Max(0f, properties["_Smoothness"].floatValue);

@@ -9,6 +9,9 @@
 		// OUTLINED
 		_OutlineColor ("Outline Color (RGBA)", Color) = (0, 0, 0, 1)
 		_OutlineThickness ("Outline Thickness (Float)", Range(1.0, 0.1)) = 0.25
+
+		// GLOBAL_MULTIPLIER
+		_GlobalMultiplierColor ("Global Color Multiplier (RGBA)", Color) = (1, 1, 1, 1)
 	}
 	SubShader
 	{
@@ -20,6 +23,7 @@
 		#pragma glsl
 		#pragma target 3.0
 		#pragma multi_compile OUTLINED_ON OUTLINED_OFF
+		#pragma multi_compile GLOBAL_MULTIPLIER_ON GLOBAL_MULTIPLIER_OFF
 
 		sampler2D _MainTex;
 		half _Smoothness;
@@ -28,6 +32,9 @@
 		// OUTLINED
 		half4 _OutlineColor;
 		half _OutlineThickness;
+			
+		// GLOBAL_MULTIPLIER
+		half4 _GlobalMultiplierColor;
 
 		struct Input
 		{
@@ -42,6 +49,9 @@
 			half smoothing = fwidth(dist) * _Smoothness;
 			half alpha = smoothstep(_Thickness - smoothing, _Thickness + smoothing, dist);
 
+			half3 finalAlbedo;
+			half finalAlpha;
+
 			// OUTLINED
 			#if OUTLINED_ON
 
@@ -49,15 +59,30 @@
 			half4 outline = half4(_OutlineColor.rgb, _OutlineColor.a * outlineAlpha);
 			half4 color = half4(IN.color.rgb, IN.color.a * alpha);
 			half4 finalColor = lerp(outline, color, alpha);
-			o.Albedo = finalColor.rgb;
-			o.Alpha = finalColor.a;
+			finalAlbedo = finalColor.rgb;
+			finalAlpha = finalColor.a;
 
 			#endif
 
 			#if OUTLINED_OFF
 
-			o.Albedo = IN.color.rgb;
-			o.Alpha = IN.color.a * alpha;
+			finalAlbedo = IN.color.rgb;
+			finalAlpha = IN.color.a * alpha;
+
+			#endif
+
+			// GLOBAL_MULTIPLIER
+			#if GLOBAL_MULTIPLIER_ON
+				
+			o.Albedo = finalAlbedo * _GlobalMultiplierColor.rgb;
+			o.Alpha = finalAlpha * _GlobalMultiplierColor.a;
+
+			#endif
+
+			#if GLOBAL_MULTIPLIER_OFF
+				
+			o.Albedo = finalAlbedo;
+			o.Alpha = finalAlpha;
 
 			#endif
 		}

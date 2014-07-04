@@ -9,6 +9,9 @@
 		// OUTLINED
 		_OutlineColor ("Outline Color (RGBA)", Color) = (0, 0, 0, 1)
 		_OutlineThickness ("Outline Thickness (Float)", Range(1.0, 0.1)) = 0.25
+
+		// GLOBAL_MULTIPLIER
+		_GlobalMultiplierColor ("Global Color Multiplier (RGBA)", Color) = (1, 1, 1, 1)
 	}
 	SubShader
 	{
@@ -26,6 +29,7 @@
 			#pragma glsl
 			#pragma target 3.0
 			#pragma multi_compile OUTLINED_ON OUTLINED_OFF
+			#pragma multi_compile GLOBAL_MULTIPLIER_ON GLOBAL_MULTIPLIER_OFF
 
 			sampler2D _MainTex;
 			half _Smoothness;
@@ -34,6 +38,9 @@
 			// OUTLINED
 			half4 _OutlineColor;
 			half _OutlineThickness;
+			
+			// GLOBAL_MULTIPLIER
+			half4 _GlobalMultiplierColor;
 
 			struct vertexInput
 			{
@@ -65,19 +72,34 @@
 				half smoothing = fwidth(dist) * _Smoothness;
 				half alpha = smoothstep(_Thickness - smoothing, _Thickness + smoothing, dist);
 
+				half4 finalColor;
+
 				// OUTLINED
 				#if OUTLINED_ON
 
 				half outlineAlpha = smoothstep(_OutlineThickness - smoothing, _OutlineThickness + smoothing, dist);
 				half4 outline = half4(_OutlineColor.rgb, _OutlineColor.a * outlineAlpha);
 				half4 color = half4(i.color.rgb, i.color.a * alpha);
-				return lerp(outline, color, alpha);
+				finalColor =  lerp(outline, color, alpha);
 
 				#endif
 
 				#if OUTLINED_OFF
+				
+				finalColor = half4(i.color.rgb, i.color.a * alpha);
 
-				return half4(i.color.rgb, i.color.a * alpha);
+				#endif
+				
+				// GLOBAL_MULTIPLIER
+				#if GLOBAL_MULTIPLIER_ON
+
+				return finalColor * _GlobalMultiplierColor;
+
+				#endif
+
+				#if GLOBAL_MULTIPLIER_OFF
+
+				return finalColor;
 
 				#endif
 			}
