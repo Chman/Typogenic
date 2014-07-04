@@ -166,14 +166,37 @@
 				<!-- Scripting Support -->
 				<h3 id="scripting">Scripting Support</h3>
 
-				<p>Typogenic comes with a full public interface to interact with the component at runtime. Don't forget to call <code>RebuildMesh()</code> to apply any change you've made.</p>
+				<p>Typogenic comes with a full public interface to interact with the component at runtime.</p>
+
+				<p>Unless you set <code>AutoRebuild</code> to <code>false</code> the component will automatically detect any change in the text settings and rebuild the mesh at the end of the frame.</p>
 
 				<pre>var component = GetComponent&lt;TypogenicText&gt;();
 component.Text = "Lorem ipsum";
-component.Size = 24f;
-component.RebuildMesh();</pre>
+component.Size = 24f;</pre>
+
+				<p>You also set most of the settings in one-go using the <code>Set()</code> method with named parameters :</p>
+
+				<pre>var component = GetComponent&lt;TypogenicText&gt;();
+component.Set(
+  text: "Lorem Ipsum",
+  alignement: TTextAlignment.Center,
+  size: 24f
+);</pre>
 
 				<p>Take a look at the <strong>TypogenicText.cs</strong> file for a list of public methods and properties, or use your favorite IDE with auto-completion.</p>
+
+				<div class="alert alert-warning">If your text is static or rarely changed it's recommended to set <code>AutoRebuild</code> to <code>false</code> so the component don't have to keep track of its current state and call <code>RebuildMesh()</code> when you need it.</div>
+
+				<div class="alert alert-warning">
+					About the colors, <code>TypogenicText</code> comes with four color fields which are used in the following ways depending on which <code>TColorMore</code> you choose :<br><br>
+
+					<ul>
+						<li>Single : <code>ColorTopLeft</code>.</li>
+						<li>Vertical Gradient : <code>ColorTopLeft</code> &amp; <code>ColorBottomLeft</code>.</li>
+						<li>Horizontal Gradient : <code>ColorTopLeft</code> &amp; <code>ColorTopRight</code>.</li>
+						<li>QuadGradient : All four fields.</li>
+					</ul>
+				</div>
 
 				<p class="text-center"><a href="#wrap">Back to top</a></p>
 
