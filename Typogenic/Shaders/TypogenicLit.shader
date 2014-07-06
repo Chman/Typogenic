@@ -23,7 +23,7 @@
 		LOD 200
 		
 		CGPROGRAM
-		#pragma surface surf Lambert alpha
+		#pragma surface surf Lambert alpha nolightmap nodirlightmap
 		#pragma glsl
 		#pragma target 3.0
 		#pragma multi_compile OUTLINED_ON OUTLINED_OFF
