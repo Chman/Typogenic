@@ -10,6 +10,10 @@
 		_OutlineColor ("Outline Color (RGBA)", Color) = (0, 0, 0, 1)
 		_OutlineThickness ("Outline Thickness (Float)", Range(1.0, 0.1)) = 0.25
 
+		// OUTLINED_GLOW
+		_OutlineGlowLow ("Glow Low Threshold", Range(0.0, 1.0)) = 0.0
+		_OutlineGlowHigh ("Glow High Threshold", Range(0.0, 1.0)) = 1.0
+
 		// GLOBAL_MULTIPLIER
 		_GlobalMultiplierColor ("Global Color Multiplier (RGBA)", Color) = (1, 1, 1, 1)
 	}
@@ -29,6 +33,7 @@
 			#pragma glsl
 			#pragma target 3.0
 			#pragma multi_compile OUTLINED_ON OUTLINED_OFF
+			#pragma multi_compile OUTLINED_GLOW_ON OUTLINED_GLOW_OFF
 			#pragma multi_compile GLOBAL_MULTIPLIER_ON GLOBAL_MULTIPLIER_OFF
 
 			sampler2D _MainTex;
@@ -38,6 +43,10 @@
 			// OUTLINED
 			half4 _OutlineColor;
 			half _OutlineThickness;
+
+			// OUTLINED_GLOW
+			half _OutlineGlowLow;
+			half _OutlineGlowHigh;
 			
 			// GLOBAL_MULTIPLIER
 			half4 _GlobalMultiplierColor;
@@ -77,7 +86,13 @@
 				// OUTLINED
 				#if OUTLINED_ON
 
+				#if OUTLINED_GLOW_ON
+				half outlineAlpha = smoothstep(max(0.0, _OutlineThickness - smoothing - _OutlineGlowLow), min(1.0, _OutlineThickness + smoothing + _OutlineGlowHigh), dist);
+				#endif
+				#if OUTLINED_GLOW_OFF
 				half outlineAlpha = smoothstep(_OutlineThickness - smoothing, _OutlineThickness + smoothing, dist);
+				#endif
+
 				half4 outline = half4(_OutlineColor.rgb, _OutlineColor.a * outlineAlpha);
 				half4 color = half4(i.color.rgb, i.color.a * alpha);
 				finalColor =  lerp(outline, color, alpha);

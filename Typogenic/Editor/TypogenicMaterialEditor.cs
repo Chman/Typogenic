@@ -50,8 +50,26 @@ public class TypogenicMaterialEditor : MaterialEditor
 		if (outlined)
 		{
 			EditorGUI.indentLevel++;
+
 			ColorProperty(properties["_OutlineColor"], "Color (RGB + Alpha)");
 			RangeProperty(properties["_OutlineThickness"], "Thickness");
+
+			bool glow = inKeywords.Contains("OUTLINED_GLOW_ON");
+			EditorGUI.BeginChangeCheck();
+			glow = EditorGUILayout.Toggle("Glow", glow);
+			if (EditorGUI.EndChangeCheck())
+				RegisterPropertyChangeUndo("Glow");
+			outKeywords.Add(glow ? "OUTLINED_GLOW_ON" : "OUTLINED_GLOW_OFF");
+
+			if (glow)
+			{
+				EditorGUI.indentLevel++;
+				EditorGUILayout.HelpBox("Don't forget to play with the outline tickness parameter as well, the following values are automatically clamped to avoid visual artifacts.", MessageType.Info);
+				RangeProperty(properties["_OutlineGlowLow"], "Low Threshold");
+				RangeProperty(properties["_OutlineGlowHigh"], "High Threshold");
+				EditorGUI.indentLevel--;
+			}
+
 			EditorGUI.indentLevel--;
 		}
 
