@@ -54,22 +54,25 @@ public class TypogenicMaterialEditor : MaterialEditor
 			ColorProperty(properties["_OutlineColor"], "Color (RGB + Alpha)");
 			RangeProperty(properties["_OutlineThickness"], "Thickness");
 
-			// OUTLINED_BLUR
-			bool blur = inKeywords.Contains("OUTLINED_BLUR_ON");
-			EditorGUI.BeginChangeCheck();
-			blur = EditorGUILayout.Toggle("Blur", blur);
-			if (EditorGUI.EndChangeCheck())
-				RegisterPropertyChangeUndo("Blur");
-			outKeywords.Add(blur ? "OUTLINED_BLUR_ON" : "OUTLINED_BLUR_OFF");
+			EditorGUI.indentLevel--;
+		}
 
-			if (blur)
-			{
-				EditorGUI.indentLevel++;
-				EditorGUILayout.HelpBox("Don't forget to play with the outline tickness parameter as well, the following values are automatically clamped to avoid visual artifacts.", MessageType.Info);
-				RangeProperty(properties["_OutlineBlurLow"], "Low Threshold");
-				RangeProperty(properties["_OutlineBlurHigh"], "High Threshold");
-				EditorGUI.indentLevel--;
-			}
+		// GLOW
+		EditorGUILayout.Space();
+		bool glowing = inKeywords.Contains("GLOW_ON");
+		EditorGUI.BeginChangeCheck();
+		glowing = EditorGUILayout.Toggle("Glow", glowing);
+		if (EditorGUI.EndChangeCheck())
+			RegisterPropertyChangeUndo("Glow");
+		outKeywords.Add(glowing ? "GLOW_ON" : "GLOW_OFF");
+
+		if (glowing)
+		{
+			EditorGUI.indentLevel++;
+
+			ColorProperty(properties["_GlowColor"], "Color (RGB + Alpha)");
+			RangeProperty(properties["_GlowStart"], "Start");
+			RangeProperty(properties["_GlowEnd"], "End");
 
 			EditorGUI.indentLevel--;
 		}

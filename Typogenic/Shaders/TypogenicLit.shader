@@ -2,7 +2,7 @@
 {
 	Properties
 	{
-		_MainTex ("Base (RGB)", 2D) = "white" {}
+		_MainTex ("Base (Alpha8)", 2D) = "white" {}
 		_Smoothness ("Smoothness / Antialiasing (Float)", Float) = 0.85
 		_Thickness ("Thickness (Float)", Range(1.0, 0.05)) = 0.5
 
@@ -10,9 +10,10 @@
 		_OutlineColor ("Outline Color (RGBA)", Color) = (0, 0, 0, 1)
 		_OutlineThickness ("Outline Thickness (Float)", Range(1.0, 0.1)) = 0.25
 
-		// OUTLINED_BLUR
-		_OutlineBlurLow ("Blur Low Threshold", Range(0.0, 1.0)) = 0.0
-		_OutlineBlurHigh ("Blur High Threshold", Range(0.0, 1.0)) = 1.0
+		// GLOW
+		_GlowColor ("Glow Color (RGBA)", Color) = (0, 0, 0, 1)
+		_GlowStart ("Glow Start", Range(0.0, 1.0)) = 0.1
+		_GlowEnd ("Glow End", Range(0.0, 1.0)) = 0.9
 
 		// GLOBAL_MULTIPLIER
 		_GlobalMultiplierColor ("Global Color Multiplier (RGBA)", Color) = (1, 1, 1, 1)
@@ -27,7 +28,7 @@
 		#pragma glsl
 		#pragma target 3.0
 		#pragma multi_compile OUTLINED_ON OUTLINED_OFF
-		#pragma multi_compile OUTLINED_BLUR_ON OUTLINED_BLUR_OFF
+		#pragma multi_compile GLOW_ON GLOW_OFF
 		#pragma multi_compile GLOBAL_MULTIPLIER_ON GLOBAL_MULTIPLIER_OFF
 
 		sampler2D _MainTex;
@@ -37,10 +38,11 @@
 		// OUTLINED
 		half4 _OutlineColor;
 		half _OutlineThickness;
-
-		// OUTLINED_BLUR
-		half _OutlineBlurLow;
-		half _OutlineBlurHigh;
+		
+		// GLOW
+		half4 _GlowColor;
+		half _GlowStart;
+		half _GlowEnd;
 			
 		// GLOBAL_MULTIPLIER
 		half4 _GlobalMultiplierColor;
@@ -58,47 +60,38 @@
 			half smoothing = fwidth(dist) * _Smoothness;
 			half alpha = smoothstep(_Thickness - smoothing, _Thickness + smoothing, dist);
 
-			half3 finalAlbedo;
-			half finalAlpha;
+			half4 finalColor = half4(IN.color.rgb, IN.color.a * alpha);
 
 			// OUTLINED
 			#if OUTLINED_ON
 			
 			// OUTLINED_BLUR
-			#if OUTLINED_BLUR_ON
-			half outlineAlpha = smoothstep(max(0.0, _OutlineThickness - smoothing - _OutlineBlurLow), min(1.0, _OutlineThickness + smoothing + _OutlineBlurHigh), dist);
-			#endif
-			#if OUTLINED_BLUR_OFF
 			half outlineAlpha = smoothstep(_OutlineThickness - smoothing, _OutlineThickness + smoothing, dist);
-			#endif
-
 			half4 outline = half4(_OutlineColor.rgb, _OutlineColor.a * outlineAlpha);
-			half4 color = half4(IN.color.rgb, IN.color.a * alpha);
-			half4 finalColor = lerp(outline, color, alpha);
-			finalAlbedo = finalColor.rgb;
-			finalAlpha = finalColor.a;
+			finalColor = lerp(outline, finalColor, alpha);
 
 			#endif
 
-			#if OUTLINED_OFF
+			// GLOW
+			#if GLOW_ON
 
-			finalAlbedo = IN.color.rgb;
-			finalAlpha = IN.color.a * alpha;
+			half glowAlpha = smoothstep(_GlowStart, _GlowEnd, dist);
+			finalColor = lerp(half4(_GlowColor.rgb, _GlowColor.a * glowAlpha), finalColor, finalColor.a);
 
 			#endif
 
 			// GLOBAL_MULTIPLIER
 			#if GLOBAL_MULTIPLIER_ON
 				
-			o.Albedo = finalAlbedo * _GlobalMultiplierColor.rgb;
-			o.Alpha = finalAlpha * _GlobalMultiplierColor.a;
+			o.Albedo = finalColor.rgb * _GlobalMultiplierColor.rgb;
+			o.Alpha = finalColor.a * _GlobalMultiplierColor.a;
 
 			#endif
 
 			#if GLOBAL_MULTIPLIER_OFF
 				
-			o.Albedo = finalAlbedo;
-			o.Alpha = finalAlpha;
+			o.Albedo = finalColor.rgb;
+			o.Alpha = finalColor.a;
 
 			#endif
 		}
