@@ -140,16 +140,20 @@
 
 				<p></p>
 
-				<p>Most of the settings are self-explanatory. If you don't need lighting on your text, disable <strong>Generate Normals</strong> to save some memory at runtime. To enable word wrapping, set <strong>Word Wrap</strong> to the desired width. A visual indicator will appear in the scene view to give you an idea about where the text will wrap. Set it to 0 or less to disable it. Finally, you can change the <strong>Color Mode</strong> to add a horizontal, vertical or quad gradient to every character.</p>
+				<p>Most of the settings are self-explanatory. To enable word wrapping, set <strong>Word Wrap</strong> to the desired width. A visual indicator will appear in the scene view to give you an idea about where the text will wrap. Set it to 0 or less to disable it.</p>
 
-				<p>All the settings in this component are, of course, available in code as well.</p>
+				<p>Using the <strong>Fill Mode</strong> you can add a horizontal, vertical or quad gradient to every character or use a texturing method (don't forget to use a textured material).</p>
+
+				<p>All the settings in this component are, of course, available via scripting as well.</p>
+
+				<div class="alert alert-warning">If you don't need lighting on your text, disable <strong>Generate Normals</strong> to save some memory at runtime.</div>
 
 				<p class="text-center"><a href="#wrap">Back to top</a></p>
 
 				<!-- Font Materials -->
 				<h3 id="font-materials">Font Materials</h3>
 
-				<p>Typogenic comes with two main shaders, lit and unlit. By default, the font wizard generates an unlit material, but you can swap it to lit by using the shader <strong>Typogenic -> Lit Font</strong>. Make sure you set <strong>Generate Normals</strong> on every <strong>Typogenic Text</strong> that makes use of the lit shader.</p>
+				<p>Typogenic comes with a few shaders : lit, unlit and texture variants. By default, the font wizard generates an unlit untextured material but you can swap it to another shader depending on your needs. Make sure you set <strong>Generate Normals</strong> on every <strong>Typogenic Text</strong> that makes use of one the lit shaders.</p>
 
 				<img src="img/material.png" class="img-rounded img-responsive img-center">
 
@@ -164,6 +168,12 @@
 				<p>Like the outlines, the <strong>Glow</strong> spread will be limited by the spread amount used in the <strong>Distance Field</strong> panel of Littera.</p>
 
 				<p>The <strong>Global Color Multiplier</strong> can be used to quickly change the text color or alpha without rebuilding the mesh, which can be useful to do quick animated color or fade effects. It applies to the outlines as well, if any. Set it to full-white full-opaque to disable it.</p>
+
+				<img src="img/material-texture.png" class="img-rounded img-responsive img-center">
+
+				<p></p>
+
+				<p>If you chose a textured <strong>Fill Mode</strong> make sure you switch to a textured shader. It will add a <strong>Fill Texture</strong> field to the material which works the same way any other textured material does in Unity.</p>
 
 				<p class="text-center"><a href="#wrap">Back to top</a></p>
 
@@ -192,7 +202,7 @@ component.Set(
 				<div class="alert alert-warning">If your text is static or rarely changed it's recommended to set <code>AutoRebuild</code> to <code>false</code> so the component don't have to keep track of its current state and call <code>RebuildMesh()</code> when you need it.</div>
 
 				<div class="alert alert-warning">
-					About the colors, <code>TypogenicText</code> comes with four color fields which are used in the following ways depending on which <code>TColorMore</code> you choose :<br><br>
+					About the colors, <code>TypogenicText</code> comes with four color fields which are used in the following ways depending on which <code>TFillMore</code> you choose :<br><br>
 
 					<ul>
 						<li>Single : <code>ColorTopLeft</code>.</li>

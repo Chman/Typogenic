@@ -9,12 +9,14 @@ public enum TTextAlignment
 	Right
 }
 
-public enum TColorMode
+public enum TFillMode
 {
-	Single,
+	SingleColor,
 	VerticalGradient,
 	HorizontalGradient,
-	QuadGradient
+	QuadGradient,
+	ProjectedTexture,
+	StretchedTexture
 }
 
 [ExecuteInEditMode]
@@ -30,7 +32,7 @@ public class TypogenicText : MonoBehaviour
 	public float ParagraphSpacing = 0f;
 	public float WordWrap = 0f;
 	public TTextAlignment Alignment = TTextAlignment.Left;
-	public TColorMode ColorMode = TColorMode.Single;
+	public TFillMode FillMode = TFillMode.SingleColor;
 	public Color ColorTopLeft = Color.white;
 	public Color ColorTopRight = Color.white;
 	public Color ColorBottomLeft = Color.white;
@@ -45,6 +47,7 @@ public class TypogenicText : MonoBehaviour
 	protected Mesh m_Mesh;
 	protected List<Vector3> m_Vertices = new List<Vector3>();
 	protected List<Vector2> m_UVs = new List<Vector2>();
+	protected List<Vector2> m_UVs2 = new List<Vector2>();
 	protected List<Color> m_Colors = new List<Color>();
 	protected List<int> m_Indices = new List<int>();
 
@@ -57,7 +60,7 @@ public class TypogenicText : MonoBehaviour
 	float _paragraphSpacing;
 	float _wordWrap;
 	TTextAlignment _alignment;
-	TColorMode _colorMode;
+	TFillMode _fillMode;
 	Color _colorTopLeft;
 	Color _colorTopRight;
 	Color _colorBottomLeft;
@@ -76,7 +79,7 @@ public class TypogenicText : MonoBehaviour
 			else if (ParagraphSpacing != _paragraphSpacing) return true;
 			else if (WordWrap != _wordWrap) return true;
 			else if (Alignment != _alignment) return true;
-			else if (ColorMode != _colorMode) return true;
+			else if (FillMode != _fillMode) return true;
 			else if (ColorTopLeft != _colorTopLeft) return true;
 			else if (ColorTopRight != _colorTopRight) return true;
 			else if (ColorBottomLeft != _colorBottomLeft) return true;
@@ -138,7 +141,7 @@ public class TypogenicText : MonoBehaviour
 		_paragraphSpacing = ParagraphSpacing;
 		_wordWrap = WordWrap;
 		_alignment = Alignment;
-		_colorMode = ColorMode;
+		_fillMode = FillMode;
 		_colorTopLeft = ColorTopLeft;
 		_colorTopRight = ColorTopRight;
 		_colorBottomLeft = ColorBottomLeft;
@@ -149,6 +152,7 @@ public class TypogenicText : MonoBehaviour
 
 		m_Vertices.Clear();
 		m_UVs.Clear();
+		m_UVs2.Clear();
 		m_Colors.Clear();
 		m_Indices.Clear();
 
@@ -218,8 +222,14 @@ public class TypogenicText : MonoBehaviour
 		m_Mesh.vertices = m_Vertices.ToArray();
 		m_Mesh.uv = m_UVs.ToArray();
 		m_Mesh.triangles = m_Indices.ToArray();
-		m_Mesh.colors = m_Colors.ToArray();
+		m_Mesh.colors = null;
+		m_Mesh.uv2 = null;
 		m_Mesh.normals = null;
+
+		if (FillMode == TFillMode.StretchedTexture || FillMode == TFillMode.ProjectedTexture)
+			m_Mesh.uv2 = m_UVs2.ToArray();
+		else
+			m_Mesh.colors = m_Colors.ToArray();
 
 		if (GenerateNormals)
 		{
@@ -275,7 +285,7 @@ public class TypogenicText : MonoBehaviour
 							glyph.rect.width * Size,
 							glyph.rect.height * Size
 						),
-					glyph.rect
+					glyph
 				);
 
 			cursorX += glyph.xAdvance * Size + Tracking + kerning;
@@ -341,9 +351,10 @@ public class TypogenicText : MonoBehaviour
 		}
 	}
 
-	void BlitQuad(Rect quad, Rect uvs)
+	void BlitQuad(Rect quad, TGlyph glyph)
 	{
 		int index = m_Vertices.Count;
+		Rect uvs = glyph.rect;
 
 		m_Vertices.Add(new Vector3(quad.x, -quad.y, 0f));
 		m_Vertices.Add(new Vector3(quad.x + quad.width, -quad.y, 0f));
@@ -355,33 +366,48 @@ public class TypogenicText : MonoBehaviour
 		m_UVs.Add(new Vector2((uvs.x + uvs.width) / Font.HScale, 1 - (uvs.y + uvs.height) / Font.VScale));
 		m_UVs.Add(new Vector2(uvs.x / Font.HScale, 1 - (uvs.y + uvs.height) / Font.VScale));
 
-		if (ColorMode == TColorMode.Single)
+		switch (FillMode)
 		{
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorTopLeft);
-		}
-		else if (ColorMode == TColorMode.VerticalGradient)
-		{
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorBottomLeft);
-			m_Colors.Add(ColorBottomLeft);
-		}
-		else if (ColorMode == TColorMode.HorizontalGradient)
-		{
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorBottomLeft);
-			m_Colors.Add(ColorBottomLeft);
-			m_Colors.Add(ColorTopLeft);
-		}
-		else
-		{
-			m_Colors.Add(ColorTopLeft);
-			m_Colors.Add(ColorTopRight);
-			m_Colors.Add(ColorBottomRight);
-			m_Colors.Add(ColorBottomLeft);
+			case TFillMode.SingleColor:
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorTopLeft);
+				break;
+			case TFillMode.VerticalGradient:
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorBottomLeft);
+				m_Colors.Add(ColorBottomLeft);
+				break;
+			case TFillMode.HorizontalGradient:
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorBottomLeft);
+				m_Colors.Add(ColorBottomLeft);
+				m_Colors.Add(ColorTopLeft);
+				break;
+			case TFillMode.QuadGradient:
+				m_Colors.Add(ColorTopLeft);
+				m_Colors.Add(ColorTopRight);
+				m_Colors.Add(ColorBottomRight);
+				m_Colors.Add(ColorBottomLeft);
+				break;
+			case TFillMode.StretchedTexture:
+				m_UVs2.Add(new Vector2(0f, 1f));
+				m_UVs2.Add(new Vector2(1f, 1f));
+				m_UVs2.Add(new Vector2(1f, 0f));
+				m_UVs2.Add(new Vector2(0f, 0f));
+				break;
+			case TFillMode.ProjectedTexture:
+				float h = uvs.height / Font.LineHeight;
+				float w = uvs.width / Font.LineHeight;
+				m_UVs2.Add(new Vector2(glyph.xOffset, h - glyph.yOffset));
+				m_UVs2.Add(new Vector2(w - glyph.xOffset, h - glyph.yOffset));
+				m_UVs2.Add(new Vector2(w - glyph.xOffset, glyph.yOffset));
+				m_UVs2.Add(new Vector2(glyph.xOffset, glyph.yOffset));
+				break;
+			default:
+				break;
 		}
 
 		m_Indices.Add(index);

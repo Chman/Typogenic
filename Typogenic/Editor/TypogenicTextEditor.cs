@@ -13,7 +13,7 @@ public class TypogenicTextEditor : Editor
 	protected SerializedProperty m_ParagraphSpacing;
 	protected SerializedProperty m_WordWrap;
 	protected SerializedProperty m_Alignment;
-	protected SerializedProperty m_ColorMode;
+	protected SerializedProperty m_FillMode;
 	protected SerializedProperty m_ColorTopLeft;
 	protected SerializedProperty m_ColorTopRight;
 	protected SerializedProperty m_ColorBottomLeft;
@@ -32,7 +32,7 @@ public class TypogenicTextEditor : Editor
 		m_ParagraphSpacing = serializedObject.FindProperty("ParagraphSpacing");
 		m_WordWrap = serializedObject.FindProperty("WordWrap");
 		m_Alignment = serializedObject.FindProperty("Alignment");
-		m_ColorMode = serializedObject.FindProperty("ColorMode");
+		m_FillMode = serializedObject.FindProperty("FillMode");
 		m_ColorTopLeft = serializedObject.FindProperty("ColorTopLeft");
 		m_ColorTopRight = serializedObject.FindProperty("ColorTopRight");
 		m_ColorBottomLeft = serializedObject.FindProperty("ColorBottomLeft");
@@ -61,28 +61,29 @@ public class TypogenicTextEditor : Editor
 		EditorGUILayout.PropertyField(m_WordWrap);
 
 		EditorGUILayout.Space();
-		EditorGUILayout.PropertyField(m_ColorMode);
+		EditorGUILayout.PropertyField(m_FillMode);
 
-		if (m_ColorMode.enumValueIndex == (int)TColorMode.Single)
+		switch (m_FillMode.enumValueIndex)
 		{
-			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Color (RGB + A)"));
-		}
-		else if (m_ColorMode.enumValueIndex == (int)TColorMode.VerticalGradient)
-		{
-			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Top Color (RGB + A)"));
-			EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Bottom Color (RGB + A)"));
-		}
-		else if (m_ColorMode.enumValueIndex == (int)TColorMode.HorizontalGradient)
-		{
-			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Left Color (RGB + A)"));
-			EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Right Color (RGB + A)"));
-		}
-		else if (m_ColorMode.enumValueIndex == (int)TColorMode.QuadGradient)
-		{
-			EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Top Left Color (RGB + A)"));
-			EditorGUILayout.PropertyField(m_ColorTopRight, new GUIContent("Top Right Color (RGB + A)"));
-			EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Bottom Left Color (RGB + A)"));
-			EditorGUILayout.PropertyField(m_ColorBottomRight, new GUIContent("Bottom Right Color (RGB + A)"));
+			case (int)TFillMode.SingleColor:
+				EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Color (RGB + A)"));
+				break;
+			case (int)TFillMode.VerticalGradient:
+				EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Top Color (RGB + A)"));
+				EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Bottom Color (RGB + A)"));
+				break;
+			case (int)TFillMode.HorizontalGradient:
+				EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Left Color (RGB + A)"));
+				EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Right Color (RGB + A)"));
+				break;
+			case (int)TFillMode.QuadGradient:
+				EditorGUILayout.PropertyField(m_ColorTopLeft, new GUIContent("Top Left Color (RGB + A)"));
+				EditorGUILayout.PropertyField(m_ColorTopRight, new GUIContent("Top Right Color (RGB + A)"));
+				EditorGUILayout.PropertyField(m_ColorBottomLeft, new GUIContent("Bottom Left Color (RGB + A)"));
+				EditorGUILayout.PropertyField(m_ColorBottomRight, new GUIContent("Bottom Right Color (RGB + A)"));
+				break;
+			default:
+				break;
 		}
 
 		if (serializedObject.ApplyModifiedProperties() || Event.current.commandName == "UndoRedoPerformed")

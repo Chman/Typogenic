@@ -1,8 +1,9 @@
-﻿Shader "Typogenic/Unlit Font"
+﻿Shader "Typogenic/Unlit Textured Font"
 {
 	Properties
 	{
 		_MainTex ("Base (Alpha8)", 2D) = "white" {}
+		_FillTex ("Fill Texture (RGBA)", 2D) = "white" {}
 		_Smoothness ("Smoothness / Antialiasing (Float)", Float) = 0.85
 		_Thickness ("Thickness (Float)", Range(1.0, 0.05)) = 0.5
 
@@ -36,8 +37,11 @@
 			#pragma multi_compile OUTLINED_ON OUTLINED_OFF
 			#pragma multi_compile GLOW_ON GLOW_OFF
 			#pragma multi_compile GLOBAL_MULTIPLIER_ON GLOBAL_MULTIPLIER_OFF
-
+			#include "UnityCG.cginc"
+			
 			sampler2D _MainTex;
+			sampler2D _FillTex;
+			half4 _FillTex_ST;
 			half _Smoothness;
 			half _Thickness;
 
@@ -57,14 +61,14 @@
 			{
 				half4 vertex : POSITION;
 				half2 texcoord0 : TEXCOORD0;
-				half4 color : COLOR;
+				half2 texcoord1 : TEXCOORD1;
 			};
 
 			struct fragmentInput
 			{
 				half4 position : SV_POSITION;
 				half2 texcoord0 : TEXCOORD0;
-				half4 color : COLOR;
+				half2 texcoord1 : TEXCOORD1;
 			};
 
 			fragmentInput vert(vertexInput i)
@@ -72,16 +76,17 @@
 				fragmentInput o;
 				o.position = mul(UNITY_MATRIX_MVP, i.vertex);
 				o.texcoord0 = i.texcoord0;
-				o.color = i.color;
+				o.texcoord1 = TRANSFORM_TEX(i.texcoord1, _FillTex);
 				return o;
 			}
 
 			half4 frag(fragmentInput i) : COLOR
 			{
 				half dist = tex2D(_MainTex, i.texcoord0).a;
+				half4 color = tex2D(_FillTex, i.texcoord1);
 				half smoothing = fwidth(dist) * _Smoothness;
 				half alpha = smoothstep(_Thickness - smoothing, _Thickness + smoothing, dist);
-				half4 finalColor = half4(i.color.rgb, i.color.a * alpha);
+				half4 finalColor = half4(color.rgb, color.a * alpha);
 
 				// OUTLINED
 				#if OUTLINED_ON

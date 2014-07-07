@@ -1,8 +1,9 @@
-﻿Shader "Typogenic/Lit Font"
+﻿Shader "Typogenic/Lit Textured Font"
 {
 	Properties
 	{
 		_MainTex ("Base (Alpha8)", 2D) = "white" {}
+		_FillTex ("Fill Texture (RGBA)", 2D) = "white" {}
 		_Smoothness ("Smoothness / Antialiasing (Float)", Float) = 0.85
 		_Thickness ("Thickness (Float)", Range(1.0, 0.05)) = 0.5
 
@@ -32,6 +33,7 @@
 		#pragma multi_compile GLOBAL_MULTIPLIER_ON GLOBAL_MULTIPLIER_OFF
 
 		sampler2D _MainTex;
+		sampler2D _FillTex;
 		half _Smoothness;
 		half _Thickness;
 
@@ -50,17 +52,16 @@
 		struct Input
 		{
 			half2 uv_MainTex;
-			half4 color : Color;
+			half2 uv2_FillTex;
 		};
 
 		void surf (Input IN, inout SurfaceOutput o)
 		{
 			half dist = tex2D(_MainTex, IN.uv_MainTex).a;
-
+			half4 color = tex2D(_FillTex, IN.uv2_FillTex);
 			half smoothing = fwidth(dist) * _Smoothness;
 			half alpha = smoothstep(_Thickness - smoothing, _Thickness + smoothing, dist);
-
-			half4 finalColor = half4(IN.color.rgb, IN.color.a * alpha);
+			half4 finalColor = half4(color.rgb, color.a * alpha);
 
 			// OUTLINED
 			#if OUTLINED_ON

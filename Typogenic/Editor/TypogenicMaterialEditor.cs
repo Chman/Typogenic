@@ -10,20 +10,19 @@ public class TypogenicMaterialEditor : MaterialEditor
 	public override void OnEnable()
 	{
 		base.OnEnable();
-
 		properties = new Dictionary<string, MaterialProperty>();
-		MaterialProperty[] props = GetMaterialProperties(new Object[] { (Material)target });
-
-		foreach (MaterialProperty property in props)
-			properties.Add(property.name, property);
 	}
 
 	public override void OnInspectorGUI()
 	{
 		serializedObject.Update();
+		FetchProperties();
 
 		if (!isVisible)
 			return;
+
+		EditorGUIUtility.fieldWidth = 64f;
+		GUI.changed = false;
 
 		Material material = (Material)target;
 		string[] inKeywords = material.shaderKeywords;
@@ -34,6 +33,10 @@ public class TypogenicMaterialEditor : MaterialEditor
 		outKeywords.Add((globalMultiplier == Color.white) ? "GLOBAL_MULTIPLIER_OFF" : "GLOBAL_MULTIPLIER_ON");
 
 		TextureProperty(properties["_MainTex"], "Main Texture (Alpha8)", false);
+
+		if (properties.ContainsKey("_FillTex"))
+			TextureProperty(properties["_FillTex"], "Fill Texture (RGB + A)", true);
+
 		FloatProperty(properties["_Smoothness"], "Smoothness (Antialiasing)");
 		properties["_Smoothness"].floatValue = Mathf.Max(0f, properties["_Smoothness"].floatValue);
 		RangeProperty(properties["_Thickness"], "Thickness");
@@ -78,7 +81,20 @@ public class TypogenicMaterialEditor : MaterialEditor
 		}
 
 		material.shaderKeywords = outKeywords.ToArray();
-		PropertiesChanged();
-		EditorUtility.SetDirty(material);
+
+		if (GUI.changed)
+		{
+			PropertiesChanged();
+			EditorUtility.SetDirty(material);
+		}
+	}
+
+	void FetchProperties()
+	{
+		properties.Clear();
+		MaterialProperty[] props = GetMaterialProperties(new Object[] { (Material)target });
+
+		foreach (MaterialProperty property in props)
+			properties.Add(property.name, property);
 	}
 }
