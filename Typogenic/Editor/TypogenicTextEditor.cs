@@ -60,7 +60,6 @@ public class TypogenicTextEditor : Editor
 		EditorGUILayout.PropertyField(m_Alignment);
 		EditorGUILayout.PropertyField(m_WordWrap);
 
-		EditorGUILayout.Space();
 		EditorGUILayout.PropertyField(m_FillMode);
 
 		switch (m_FillMode.enumValueIndex)
