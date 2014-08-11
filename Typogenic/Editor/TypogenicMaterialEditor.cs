@@ -80,6 +80,10 @@ public class TypogenicMaterialEditor : MaterialEditor
 			EditorGUI.indentLevel--;
 		}
 
+		// SHADOWS
+		if (properties.ContainsKey("_ShadowCutoff"))
+			RangeProperty(properties["_ShadowCutoff"], "Shadow Cutoff");
+
 		material.shaderKeywords = outKeywords.ToArray();
 
 		if (GUI.changed)

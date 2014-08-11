@@ -49,7 +49,8 @@ public class TypogenicText : MonoBehaviour
 	protected List<Vector2> m_UVs = new List<Vector2>();
 	protected List<Vector2> m_UVs2 = new List<Vector2>();
 	protected List<Color> m_Colors = new List<Color>();
-	protected List<int> m_Indices = new List<int>();
+	protected List<Rect> m_GlyphBounds = new List<Rect>();
+	protected List<int>[] m_SubmeshTriangles;
 
 	// Not the best way to track changes but Unity can't serialize properties,
 	// so it'll do the job just fine for now.
@@ -66,6 +67,8 @@ public class TypogenicText : MonoBehaviour
 	Color _colorBottomLeft;
 	Color _colorBottomRight;
 	bool _generateNormals;
+	int _materialCount;
+	int _currentMaterial;
 
 	public bool AutoRebuild = true;
 	public bool IsDirty
@@ -147,22 +150,31 @@ public class TypogenicText : MonoBehaviour
 		_colorBottomLeft = ColorBottomLeft;
 		_colorBottomRight = ColorBottomRight;
 		_generateNormals = GenerateNormals;
+		_currentMaterial = 0;
+		_materialCount = renderer.sharedMaterials.Length;
 
 		m_Mesh.Clear();
-
 		m_Vertices.Clear();
 		m_UVs.Clear();
 		m_UVs2.Clear();
 		m_Colors.Clear();
-		m_Indices.Clear();
+
+		m_SubmeshTriangles = new List<int>[_materialCount];
+
+		for (int i = 0; i < _materialCount; i++)
+			m_SubmeshTriangles[i] = new List<int>();
 
 		if (IsTextNullOrEmpty())
 			return;
 
+		ClearGlyphBounds();
+
 		Width = 0f;
 		Height = 0f;
 		float cursorX = 0f, cursorY = 0f;
-		string[] lines = Regex.Split(Text, @"\r?\n|\r");
+
+		Text = Regex.Replace(Text, @"\r\n", "\n");
+		string[] lines = Regex.Split(Text, @"\n");
 
 		if (WordWrap <= 0)
 		{
@@ -176,6 +188,7 @@ public class TypogenicText : MonoBehaviour
 					cursorX = -GetStringWidth(line);
 
 				BlitString(line, cursorX, cursorY);
+				AddPlaceholderGlyphBounds();
 				cursorY += Font.LineHeight * Size + Leading + ParagraphSpacing;
 			}
 		}
@@ -209,6 +222,8 @@ public class TypogenicText : MonoBehaviour
 					}
 
 					cursorX = BlitString(word, cursorX, cursorY, vertexPointers);
+
+					AddPlaceholderGlyphBounds();
 				}
 
 				OffsetStringPosition(vertexPointers, cursorX);
@@ -221,10 +236,14 @@ public class TypogenicText : MonoBehaviour
 
 		m_Mesh.vertices = m_Vertices.ToArray();
 		m_Mesh.uv = m_UVs.ToArray();
-		m_Mesh.triangles = m_Indices.ToArray();
 		m_Mesh.colors = null;
 		m_Mesh.uv2 = null;
 		m_Mesh.normals = null;
+
+		m_Mesh.subMeshCount = renderer.sharedMaterials.Length;
+
+		for (int i = 0; i < m_Mesh.subMeshCount; i++)
+			m_Mesh.SetTriangles(m_SubmeshTriangles[i].ToArray(), i);
 
 		if (FillMode == TFillMode.StretchedTexture || FillMode == TFillMode.ProjectedTexture)
 			m_Mesh.uv2 = m_UVs2.ToArray();
@@ -242,6 +261,16 @@ public class TypogenicText : MonoBehaviour
 		}
 
 		m_Mesh.RecalculateBounds();
+		RefreshColliders();
+	}
+
+	void RefreshColliders() 
+	{
+		foreach (BoxCollider c in GetComponents<BoxCollider>()) 
+		{
+			c.size = new Vector3(m_Mesh.bounds.size.x, m_Mesh.bounds.size.y, .1f);
+			c.center = m_Mesh.bounds.center;
+		}
 	}
 
 	bool IsTextNullOrEmpty()
@@ -255,17 +284,56 @@ public class TypogenicText : MonoBehaviour
 	float BlitString(string str, float cursorX, float cursorY, List<int> vertexPointers = null)
 	{
 		TGlyph prevGlyph = null;
+		Rect r;
+		bool inControlCode = false;
+		int requestedMaterial = 0;
 
 		foreach (char c in str)
 		{
 			int charCode = (int)c;
-			TGlyph glyph = Font.Glyphs.Get(charCode);
 
+			if (inControlCode)
+			{
+				inControlCode = false;
+
+				if (charCode >= 48 && charCode <= 57) // 0-9
+				{
+					requestedMaterial = charCode - 48;
+
+					if (requestedMaterial < _materialCount)
+					{
+						_currentMaterial = requestedMaterial;
+					}
+					else
+					{
+						Debug.LogWarning(string.Format(
+							"Requested material {0} out of range.", requestedMaterial
+						));
+					}
+
+					AddPlaceholderGlyphBounds();
+					continue;
+				}
+			}
+			else 
+			{
+				if (charCode == 92) // Backslash
+				{ 
+					inControlCode = true;
+					AddPlaceholderGlyphBounds();
+					continue;
+				}
+			}
+
+			TGlyph glyph = Font.Glyphs.Get(charCode);
+			
 			if (glyph == null)
 				continue;
 
 			if (charCode == 32)
 			{
+				// Assuming here that spaces should not be clickable.
+				AddPlaceholderGlyphBounds();
 				cursorX += glyph.xAdvance * Size + Tracking;
 				continue;
 			}
@@ -278,15 +346,22 @@ public class TypogenicText : MonoBehaviour
 			if (vertexPointers != null)
 				vertexPointers.Add(m_Vertices.Count);
 
-			BlitQuad(
-					new Rect(
-							cursorX + glyph.xOffset * Size + kerning,
-							cursorY + glyph.yOffset * Size,
-							glyph.rect.width * Size,
-							glyph.rect.height * Size
-						),
-					glyph
-				);
+			r = new Rect(
+				cursorX + glyph.xOffset * Size + kerning,
+				cursorY + glyph.yOffset * Size,
+				glyph.rect.width * Size,
+				glyph.rect.height * Size
+			);
+
+			BlitQuad(r, glyph);
+
+			// Click bounds for glyphs are based on allocated space, not rendered space.
+			// Otherwise we'll end up with unclickable dead zones between glyphs.
+			r.width = glyph.xAdvance * Size;
+			// And Y coordinates are just not handled the same at all.
+			r.y = -cursorY - r.height - glyph.yOffset * Size;
+
+			StoreGlyphBounds(r);
 
 			cursorX += glyph.xAdvance * Size + Tracking + kerning;
 			prevGlyph = glyph;
@@ -301,11 +376,31 @@ public class TypogenicText : MonoBehaviour
 	float GetStringWidth(string str)
 	{
 		TGlyph prevGlyph = null;
+		bool inControlCode = false;
 		float width = 0f;
 
 		foreach (char c in str)
 		{
 			int charCode = (int)c;
+
+			if (inControlCode)
+			{
+				inControlCode = false;
+
+				if (charCode >= 48 && charCode <= 57) // 0-9
+				{
+					continue;
+				}
+			}
+			else
+			{
+				if (charCode == 92) // Backslash
+				{
+					inControlCode = true;
+					continue;
+				}
+			}
+
 			TGlyph glyph = Font.Glyphs.Get(charCode);
 
 			if (glyph == null)
@@ -410,11 +505,81 @@ public class TypogenicText : MonoBehaviour
 				break;
 		}
 
-		m_Indices.Add(index);
-		m_Indices.Add(index + 1);
-		m_Indices.Add(index + 2);
-		m_Indices.Add(index);
-		m_Indices.Add(index + 2);
-		m_Indices.Add(index + 3);
+		m_SubmeshTriangles[_currentMaterial].Add(index);
+		m_SubmeshTriangles[_currentMaterial].Add(index + 1);
+		m_SubmeshTriangles[_currentMaterial].Add(index + 2);
+		m_SubmeshTriangles[_currentMaterial].Add(index);
+		m_SubmeshTriangles[_currentMaterial].Add(index + 2);
+		m_SubmeshTriangles[_currentMaterial].Add(index + 3);
 	}
+
+	void ClearGlyphBounds() 
+	{
+		m_GlyphBounds.Clear();
+	}
+	
+	void StoreGlyphBounds(Rect r) 
+	{
+		m_GlyphBounds.Add(r);
+
+		Debug.DrawLine(
+			transform.position + new Vector3(r.x, r.y + r.height, 0),
+			transform.position + new Vector3(r.x + r.width, r.y, 0),
+			Color.red, 5, false
+		);
+	}
+	
+	void AddPlaceholderGlyphBounds() 
+	{
+		// Adds a dummy glyph bounds Rect, to keep the list's indices
+		// synchronized to the text string's indices.
+		StoreGlyphBounds(new Rect(0,0,0,0));
+	}
+
+	int GetGlyphIndexAtWorldPoint(Vector3 point)
+	{
+		Rect r;
+		int index = 0;
+
+		for (int i = 0; i < m_GlyphBounds.Count; i++)
+		{
+			r = m_GlyphBounds[i];
+			
+			// Translate to world coordinates at current position.
+			r.x += transform.position.x;
+			r.y += transform.position.y;
+			
+			if (r.Contains(point))
+				return index;
+
+			index++;
+		}
+
+		return -1;
+	}
+
+	void OnMouseUpAsButton()
+	{
+		Vector3 point;
+		float distance = 0;
+		int index = 0;
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		Plane p = new Plane(Vector3.back, transform.position);
+		
+		if (p.Raycast(ray, out distance)) 
+		{
+			point = ray.GetPoint(distance);
+			index = GetGlyphIndexAtWorldPoint(point);
+
+			if (index > -1) 
+			{
+				BroadcastMessage(
+					"OnGlyphClicked",
+					new TypogenicGlyphClickEvent(this, point, index),
+					SendMessageOptions.DontRequireReceiver
+				);
+			}
+		}
+	}
+
 }

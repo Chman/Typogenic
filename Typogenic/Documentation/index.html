@@ -51,7 +51,9 @@
 							<li><a href="#create-font">Creating a New Font</a></li>
 							<li><a href="#text-component">Text Component</a></li>
 							<li><a href="#font-materials">Font Materials</a></li>
+							<li><a href="#mixed-materials">Mixed Materials</a></li>
 							<li><a href="#scripting">Scripting Support</a></li>
+							<li><a href="#interactivity">Interactivity</a></li>
 							<li><a href="#tips">Tips &amp; Tricks</a></li>
 						</ul>
 						<li><a href="#support">Contact &amp; Support</a></li>
@@ -70,7 +72,7 @@
 					<h2>Requirements</h2>
 				</div>
 
-				<p>Typogenic requires Unity 4.3+ and works with the free version. It's currently untested on mobile devices but I see no reason why it wouldn't work there.</p>
+				<p>Typogenic requires Unity 4.3+ and works with the free version. It works on desktop as well as mobile platforms.</p>
 
 				<p>The shaders included make use of <strong>Shader Model 3.0</strong> features : NVIDIA cards since 2004 (GeForce 6), AMD cards since 2005 (Radeon X1300), Intel cards since 2006 (GMA X3000), OpenGL ES 2.0, Xbox 360, PS3.</p>
 
@@ -153,7 +155,7 @@
 				<!-- Font Materials -->
 				<h3 id="font-materials">Font Materials</h3>
 
-				<p>Typogenic comes with a few shaders : lit, unlit and texture variants. By default, the font wizard generates an unlit untextured material but you can swap it to another shader depending on your needs. Make sure you set <strong>Generate Normals</strong> on every <strong>Typogenic Text</strong> that makes use of one the lit shaders.</p>
+				<p>Typogenic comes with a few shaders : lit, unlit, texture &amp; shadow caster variants. By default, the font wizard generates an unlit untextured material but you can swap it to another shader depending on your needs. Make sure you set <strong>Generate Normals</strong> on every <strong>Typogenic Text</strong> that makes use of one the lit shaders.</p>
 
 				<img src="img/material.png" class="img-rounded img-responsive img-center">
 
@@ -174,6 +176,29 @@
 				<p></p>
 
 				<p>If you chose a textured <strong>Fill Mode</strong> make sure you switch to a textured shader. It will add a <strong>Fill Texture</strong> field to the material which works the same way any other textured material does in Unity.</p>
+
+				<img src="img/material-shadow.png" class="img-rounded img-responsive img-center">
+
+				<p></p>
+
+				<p>When working with a shadow casting material you'll also get the ability to adjust the shadow cutoff. The default value should be fine but you can tweak it to get thinner or larger shadows.</p>
+
+				<p class="text-center"><a href="#wrap">Back to top</a></p>
+
+				<!-- Mixed Materials -->
+				<h3 id="mixed-materials">Mixed Materials</h3>
+
+				<p>You can mix up to nine materials within the same text component using a simple formatting trick.</p>
+
+				<img src="img/material-mixed.png" class="img-rounded img-responsive img-center">
+
+				<p></p>
+
+				<p>Assign a bunch of materials into the <strong>Materials</strong> array of your <strong>Mesh Renderer</strong> component. Keep track of each material index in the list (<strong>Element 0</strong>, <strong>Element 1</strong>, etc) and use them with an back-slash to activate them where you need them. Like so :</p>
+
+				<pre>\0Nice \1and \2colorful !</pre>
+
+				<p>Assuming material <strong>0</strong> is red, <strong>1</strong> is green and <strong>2</strong> is blue, it will display a red, green and blue line of text.
 
 				<p class="text-center"><a href="#wrap">Back to top</a></p>
 
@@ -211,6 +236,29 @@ component.Set(
 						<li>QuadGradient : All four fields.</li>
 					</ul>
 				</div>
+
+				<p class="text-center"><a href="#wrap">Back to top</a></p>
+
+				<!-- Interactivity -->
+				<h3 id="interactivity">Interactivity</h3>
+
+				<p>Typogenic lets you detect individual character clicks. To do so, make sure your text has a collider (a simple box is fine, no need for a complex mesh collider). Typogenic will then broadcast a <code>OnGlyphClicked</code> message along with a <code>TypogenicGlyphClickEvent</code>.</p>
+
+				<pre>using UnityEngine;
+
+public class ClickHandler : MonoBehaviour
+{
+	void OnGlyphClicked(TypogenicGlyphClickEvent e)
+	{
+		Debug.Log(string.Format(
+			"Clicked {0} at character index {1}",
+			e.source.name,
+			e.index
+		));
+	}
+}</pre>
+
+				<p>Once you've got the character index you can easily extract which character, word or line has been clicked. See <strong>Demo 9</strong> and <em>ClickHandler.cs</em> in the <em>/Typogenic/Demo</em> folder for a more complete example.</p>
 
 				<p class="text-center"><a href="#wrap">Back to top</a></p>
 

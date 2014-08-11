@@ -8,11 +8,17 @@ Requires Unity 4.3+ and works with Unity Free.
 Instructions
 ------------
 
-Copy the `Typogenic` folder into your project or import `Typogenic.unitypackage`. You can also import it from the [Asset Store](https://www.assetstore.unity3d.com/en/#!/content/19182).
+Copy the `Typogenic` and `Gizmos` folders into your project or import `Typogenic.unitypackage`. You can also import it from the [Asset Store](https://www.assetstore.unity3d.com/en/#!/content/19182).
 
 Read the online [documentation](http://thomashourdel.com/typogenic/doc/) for more information.
 
 Pull requests are welcomed !
+
+Contributors
+------------
+
+  - StarManta
+  - Michael McCollum (gnustoboz)
 
 License
 -------
