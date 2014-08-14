@@ -101,14 +101,15 @@ public class TypogenicTextEditor : Editor
 
 		if (src.WordWrap > 0f)
 		{
+			Vector3 localScale = src.transform.localScale;
 			Vector3 alignmentOffset = Vector3.zero;
-			if (src.Alignment == TTextAlignment.Center) alignmentOffset = new Vector3(-src.WordWrap * 0.5f, 0f, 0f);
-			if (src.Alignment == TTextAlignment.Right) alignmentOffset = new Vector3(-src.WordWrap, 0f, 0f);
+			if (src.Alignment == TTextAlignment.Center) alignmentOffset = new Vector3(-src.WordWrap * 0.5f * localScale.x, 0f, 0f);
+			if (src.Alignment == TTextAlignment.Right) alignmentOffset = new Vector3(-src.WordWrap * localScale.x, 0f, 0f);
 
 			Vector3 v1 = src.transform.position + alignmentOffset; // top left
-			Vector3 v2 = v1 + src.transform.rotation * new Vector3(src.WordWrap, 0f, 0f); // top right
-			Vector3 v3 = v1 + src.transform.rotation * new Vector3(0f, -src.Height, 0f); // bottom left
-			Vector3 v4 = v3 + src.transform.rotation * new Vector3(src.WordWrap, 0f, 0f); // bottom right
+			Vector3 v2 = v1 + src.transform.rotation * new Vector3(localScale.x * src.WordWrap, 0f, 0f); // top right
+			Vector3 v3 = v1 + src.transform.rotation * new Vector3(0f, -src.Height * localScale.y, 0f); // bottom left
+			Vector3 v4 = v3 + src.transform.rotation * new Vector3(src.WordWrap * localScale.x, 0f, 0f); // bottom right
 			Handles.color = Color.yellow;
 			Handles.DrawLine(v1, v2);
 			Handles.DrawLine(v1, v3);
