@@ -19,6 +19,9 @@ public class TypogenicTextEditor : Editor
 	protected SerializedProperty m_ColorBottomLeft;
 	protected SerializedProperty m_ColorBottomRight;
 	protected SerializedProperty m_GenerateNormals;
+	protected SerializedProperty m_Stationary;
+	protected SerializedProperty m_EnableClickSupport;
+	protected SerializedProperty m_DrawGlyphBoundsGizmos;
 
 	Vector2 scrollText;
 
@@ -38,6 +41,9 @@ public class TypogenicTextEditor : Editor
 		m_ColorBottomLeft = serializedObject.FindProperty("ColorBottomLeft");
 		m_ColorBottomRight = serializedObject.FindProperty("ColorBottomRight");
 		m_GenerateNormals = serializedObject.FindProperty("GenerateNormals");
+		m_Stationary = serializedObject.FindProperty("Stationary");
+		m_EnableClickSupport = serializedObject.FindProperty("EnableClickSupport");
+		m_DrawGlyphBoundsGizmos = serializedObject.FindProperty("DrawGlyphBoundsGizmos");
 	}
 
 	public override void OnInspectorGUI()
@@ -48,6 +54,9 @@ public class TypogenicTextEditor : Editor
 
 		EditorGUILayout.PropertyField(m_Font);
 		EditorGUILayout.PropertyField(m_GenerateNormals);
+		EditorGUILayout.PropertyField(m_DrawGlyphBoundsGizmos);
+		EditorGUILayout.PropertyField(m_Stationary);
+		EditorGUILayout.PropertyField(m_EnableClickSupport);
 
 		EditorGUILayout.PrefixLabel(String.Format("Text (w: {0:F2}, h: {1:F2})", ((TypogenicText)target).Width, ((TypogenicText)target).Height));
 		scrollText = EditorGUILayout.BeginScrollView(scrollText, GUILayout.MinHeight(85f), GUILayout.MaxHeight(200f));
@@ -104,7 +113,7 @@ public class TypogenicTextEditor : Editor
 			Vector3 alignmentOffset = Vector3.zero;
 			if (src.Alignment == TTextAlignment.Center) alignmentOffset = new Vector3(-src.WordWrap * 0.5f, 0f, 0f);
 			else if (src.Alignment == TTextAlignment.Right) alignmentOffset = new Vector3(-src.WordWrap, 0f, 0f);
-			
+				
 			Vector3 v1 = src.transform.TransformPoint(alignmentOffset);
 			Vector3 v2 = src.transform.TransformPoint(alignmentOffset + new Vector3(src.WordWrap, 0f, 0f));
 			Vector3 v3 = src.transform.TransformPoint(alignmentOffset + new Vector3(0f, -src.Height, 0f));
