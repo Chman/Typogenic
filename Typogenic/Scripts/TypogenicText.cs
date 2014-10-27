@@ -369,7 +369,7 @@ public class TypogenicText : MonoBehaviour
 			float kerning = 0f;
 
 			if (prevGlyph != null)
-				kerning = prevGlyph.GetKerning(charCode);
+				kerning = prevGlyph.GetKerning(charCode) * Size;
 
 			if (vertexPointers != null)
 				vertexPointers.Add(m_Vertices.Count);
@@ -457,7 +457,7 @@ public class TypogenicText : MonoBehaviour
 			float kerning = 0f;
 
 			if (prevGlyph != null)
-				kerning = prevGlyph.GetKerning(charCode);
+				kerning = prevGlyph.GetKerning(charCode) * Size;
 
 			width += glyph.xAdvance * Size + Tracking + kerning;
 			prevGlyph = glyph;
