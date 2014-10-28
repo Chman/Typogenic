@@ -38,6 +38,10 @@ public class TypogenicText : MonoBehaviour
 	public Color ColorBottomLeft = Color.white;
 	public Color ColorBottomRight = Color.white;
 	public bool GenerateNormals = true;
+	public bool Stationary = true;
+	public bool EnableClickSupport = true;
+
+	public bool DrawGlyphBoundsGizmos = false;
 
 	public float Width { get; protected set; }
 	public float Height { get; protected set; }
@@ -49,8 +53,9 @@ public class TypogenicText : MonoBehaviour
 	protected List<Vector2> m_UVs = new List<Vector2>();
 	protected List<Vector2> m_UVs2 = new List<Vector2>();
 	protected List<Color> m_Colors = new List<Color>();
-	protected List<Rect> m_GlyphBounds = new List<Rect>();
+	protected List<Bounds> m_GlyphBounds = new List<Bounds>();
 	protected List<int>[] m_SubmeshTriangles;
+
 
 	// Not the best way to track changes but Unity can't serialize properties,
 	// so it'll do the job just fine for now.
@@ -67,6 +72,9 @@ public class TypogenicText : MonoBehaviour
 	Color _colorBottomLeft;
 	Color _colorBottomRight;
 	bool _generateNormals;
+	bool _stationary;
+	bool _enableClickSupport;
+	bool _drawGlyphBoundsGizmos;
 	int _materialCount;
 	int _currentMaterial;
 
@@ -88,6 +96,8 @@ public class TypogenicText : MonoBehaviour
 			else if (ColorBottomLeft != _colorBottomLeft) return true;
 			else if (ColorBottomRight != _colorBottomRight) return true;
 			else if (GenerateNormals != _generateNormals) return true;
+			else if (Stationary != _stationary) return true;
+			else if (EnableClickSupport != _enableClickSupport) return true;
 
 			return false;
 		}
@@ -150,6 +160,8 @@ public class TypogenicText : MonoBehaviour
 		_colorBottomLeft = ColorBottomLeft;
 		_colorBottomRight = ColorBottomRight;
 		_generateNormals = GenerateNormals;
+		_stationary = Stationary;
+		_enableClickSupport = EnableClickSupport;
 		_currentMaterial = 0;
 		_materialCount = renderer.sharedMaterials.Length;
 
@@ -188,7 +200,10 @@ public class TypogenicText : MonoBehaviour
 					cursorX = -GetStringWidth(line);
 
 				BlitString(line, cursorX, cursorY);
-				AddPlaceholderGlyphBounds();
+				if (EnableClickSupport)
+				{
+					AddPlaceholderGlyphBounds();
+				}
 				cursorY += Font.LineHeight * Size + Leading + ParagraphSpacing;
 			}
 		}
@@ -223,7 +238,10 @@ public class TypogenicText : MonoBehaviour
 
 					cursorX = BlitString(word, cursorX, cursorY, vertexPointers);
 
-					AddPlaceholderGlyphBounds();
+					if (EnableClickSupport)
+					{
+						AddPlaceholderGlyphBounds();
+					}
 				}
 
 				OffsetStringPosition(vertexPointers, cursorX);
@@ -311,7 +329,11 @@ public class TypogenicText : MonoBehaviour
 						));
 					}
 
-					AddPlaceholderGlyphBounds();
+					if (EnableClickSupport)
+					{
+						AddPlaceholderGlyphBounds();
+					}
+
 					continue;
 				}
 			}
@@ -320,7 +342,10 @@ public class TypogenicText : MonoBehaviour
 				if (charCode == 92) // Backslash
 				{ 
 					inControlCode = true;
-					AddPlaceholderGlyphBounds();
+					if (EnableClickSupport)
+					{
+						AddPlaceholderGlyphBounds();
+					}
 					continue;
 				}
 			}
@@ -333,7 +358,10 @@ public class TypogenicText : MonoBehaviour
 			if (charCode == 32)
 			{
 				// Assuming here that spaces should not be clickable.
-				AddPlaceholderGlyphBounds();
+				if (EnableClickSupport)
+				{
+					AddPlaceholderGlyphBounds();
+				}
 				cursorX += glyph.xAdvance * Size + Tracking;
 				continue;
 			}
@@ -355,13 +383,33 @@ public class TypogenicText : MonoBehaviour
 
 			BlitQuad(r, glyph);
 
-			// Click bounds for glyphs are based on allocated space, not rendered space.
-			// Otherwise we'll end up with unclickable dead zones between glyphs.
-			r.width = glyph.xAdvance * Size;
-			// And Y coordinates are just not handled the same at all.
-			r.y = -cursorY - r.height - glyph.yOffset * Size;
 
-			StoreGlyphBounds(r);
+			// Only need to store glyph bounds if click support is enabled.
+			if (EnableClickSupport)
+			{
+
+				// Click bounds for glyphs are based on allocated space, not rendered space.
+				// Otherwise we'll end up with unclickable dead zones between glyphs.
+				r.width = glyph.xAdvance * Size;
+				// And Y coordinates are just not handled the same at all.
+				r.y = -cursorY - r.height - glyph.yOffset * Size;
+
+
+				// Calculate relative world-space bounds for this glyph and store them.
+				Bounds b = new Bounds(
+					new Vector3(r.x + r.width/2f, r.y + r.height/2f, 0f),
+					new Vector3(r.width, r.height, r.height)
+				);
+
+				if (Stationary)
+				{
+					// Bake the rotation and position into the bounds so we
+					// don't have to recalculate them on the fly later.
+					b = TranslateBounds(b);
+				}
+				StoreGlyphBounds(b);
+			}
+
 
 			cursorX += glyph.xAdvance * Size + Tracking + kerning;
 			prevGlyph = glyph;
@@ -518,41 +566,53 @@ public class TypogenicText : MonoBehaviour
 		m_GlyphBounds.Clear();
 	}
 	
-	void StoreGlyphBounds(Rect r) 
+	void StoreGlyphBounds(Bounds b) 
 	{
-		m_GlyphBounds.Add(r);
+		m_GlyphBounds.Add(b);
+	}
 
-		Debug.DrawLine(
-			transform.position + new Vector3(r.x, r.y + r.height, 0),
-			transform.position + new Vector3(r.x + r.width, r.y, 0),
-			Color.red, 5, false
-		);
+	Bounds TranslateBounds(Bounds b)
+	{
+		Vector3 size;
+
+		b.center = transform.rotation * b.center + transform.position;
+		size = transform.rotation * b.size;
+
+		// rotating a size by an arbitrary Quaternion can result
+		// in negative sizes, which will make the bounds checks fail.
+		size.x = Mathf.Abs(size.x);
+		size.y = Mathf.Abs(size.y);
+		size.z = Mathf.Abs(size.z);
+
+		b.size = size;
+
+		return b;
 	}
 	
 	void AddPlaceholderGlyphBounds() 
 	{
-		// Adds a dummy glyph bounds Rect, to keep the list's indices
+		// Adds a dummy glyph bounds, to keep the list's indices
 		// synchronized to the text string's indices.
-		StoreGlyphBounds(new Rect(0,0,0,0));
+		StoreGlyphBounds(new Bounds());
 	}
 
 	int GetGlyphIndexAtWorldPoint(Vector3 point)
 	{
-		Rect r;
-		int index = 0;
+		Bounds b;
 
-		for (int i = 0; i < m_GlyphBounds.Count; i++)
+		for (int i = 0; i < Text.Length; i++)
 		{
-			r = m_GlyphBounds[i];
-			
-			// Translate to world coordinates at current position.
-			r.x += transform.position.x;
-			r.y += transform.position.y;
-			
-			if (r.Contains(point))
-				return index;
+			b = m_GlyphBounds[i];
 
-			index++;
+			if (!Stationary)
+			{
+				b = TranslateBounds(b);
+			}
+
+			if (b.Contains(point))
+			{
+				return i;
+			}
 		}
 
 		return -1;
@@ -560,12 +620,17 @@ public class TypogenicText : MonoBehaviour
 
 	void OnMouseUpAsButton()
 	{
+		if (!EnableClickSupport)
+		{
+			return;
+		}
+
 		Vector3 point;
 		float distance = 0;
 		int index = 0;
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		Plane p = new Plane(Vector3.back, transform.position);
-		
+		Plane p = new Plane(-transform.forward, transform.position);
+
 		if (p.Raycast(ray, out distance)) 
 		{
 			point = ray.GetPoint(distance);
@@ -582,4 +647,22 @@ public class TypogenicText : MonoBehaviour
 		}
 	}
 
+	void OnDrawGizmos()
+	{
+		if (DrawGlyphBoundsGizmos)
+		{
+			Bounds b;
+
+			Gizmos.color = Color.cyan;
+			for (int i = 0; i < Text.Length; i++)
+			{
+				b = m_GlyphBounds[i];
+				if (!Stationary)
+				{
+					b = TranslateBounds(b);
+				}
+				Gizmos.DrawWireCube(b.center, b.size);
+			}
+		}
+	}
 }
