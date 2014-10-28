@@ -568,14 +568,7 @@ public class TypogenicText : MonoBehaviour
 	
 	void StoreGlyphBounds(Bounds b) 
 	{
-		Vector3 p1, p2;
-
 		m_GlyphBounds.Add(b);
-
-		p1 = transform.rotation * b.min + transform.position;
-		p2 = transform.rotation * b.max + transform.position;
-
-		Debug.DrawLine(p1, p2, Color.red, 5, false);
 	}
 
 	Bounds TranslateBounds(Bounds b)
