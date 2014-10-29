@@ -649,6 +649,11 @@ public class TypogenicText : MonoBehaviour
 
 	void OnDrawGizmos()
 	{
+		if (!EnableClickSupport)
+		{
+			return;
+		}
+
 		if (DrawGlyphBoundsGizmos)
 		{
 			Bounds b;
