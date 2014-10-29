@@ -17,8 +17,8 @@ Pull requests are welcomed !
 Contributors
 ------------
 
-  - StarManta
   - Michael McCollum (gnustoboz)
+  - StarManta
 
 License
 -------
