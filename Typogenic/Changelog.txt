@@ -1,0 +1,31 @@
+1.5
+- Better click support in 3D space (Michael McCollum).
+- Added "Typogenic Manual" to the help menu for quick documentation access.
+
+1.4
+- Fixed the word-wrap zone indicator with Right and Center alignments.
+- Fixed scaling with the word-wrap zone indicator.
+- Fixed kerning values not being scaled correctly with font size.
+
+1.3
+- Big patch from Michael McCollum : shadow casting, mixed-materials and click detection !
+- New demos to showcase every new feature.
+- Icon for the font assets (easier to spot in the Project tab).
+- More documentation.
+
+1.2
+- Glow support !
+- Texture support (two modes) !
+- TColorMode is now TFillMode and TypogenicText.ColorMode is now TypogenicText.FillMode, this change might break your scripts but it's easy to fix and needed for the future.
+- Small performance improvement in the editor when editing text materials.
+
+1.1
+- For some reason, the Asset Store version was in a /Assets/Package/Typogenic subfolder instead of /Assets/Typogenic. This has been fixed and will probably break your Typogenic installation. Sorry for the trouble...
+- Added a Global Color Multiplier to the shaders. It can be used to quickly change the text color or alpha without rebuilding the mesh, which can be useful to do quick animated color or fade effects.
+- RebuildMesh() is now called automatically at the end of the frame if needed (can be disabled, see the doc).
+- Added a quick Set() method on TypogenicText (check out the sample in the doc).
+- Added a public Mesh getter on TypogenicText.
+- Better documentation.
+
+1.0
+- Initial release.
