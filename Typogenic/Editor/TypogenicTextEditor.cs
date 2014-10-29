@@ -55,8 +55,14 @@ public class TypogenicTextEditor : Editor
 		EditorGUILayout.PropertyField(m_Font);
 		EditorGUILayout.PropertyField(m_GenerateNormals);
 		EditorGUILayout.PropertyField(m_DrawGlyphBoundsGizmos);
-		EditorGUILayout.PropertyField(m_Stationary);
 		EditorGUILayout.PropertyField(m_EnableClickSupport);
+
+		if (m_EnableClickSupport.boolValue)
+		{
+			EditorGUI.indentLevel++;
+			EditorGUILayout.PropertyField(m_Stationary, new GUIContent("Static"));
+			EditorGUI.indentLevel--;
+		}
 
 		EditorGUILayout.PrefixLabel(String.Format("Text (w: {0:F2}, h: {1:F2})", ((TypogenicText)target).Width, ((TypogenicText)target).Height));
 		scrollText = EditorGUILayout.BeginScrollView(scrollText, GUILayout.MinHeight(85f), GUILayout.MaxHeight(200f));
