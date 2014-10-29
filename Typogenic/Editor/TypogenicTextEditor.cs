@@ -54,12 +54,12 @@ public class TypogenicTextEditor : Editor
 
 		EditorGUILayout.PropertyField(m_Font);
 		EditorGUILayout.PropertyField(m_GenerateNormals);
-		EditorGUILayout.PropertyField(m_DrawGlyphBoundsGizmos);
 		EditorGUILayout.PropertyField(m_EnableClickSupport);
 
 		if (m_EnableClickSupport.boolValue)
 		{
 			EditorGUI.indentLevel++;
+			EditorGUILayout.PropertyField(m_DrawGlyphBoundsGizmos);
 			EditorGUILayout.PropertyField(m_Stationary, new GUIContent("Static"));
 			EditorGUI.indentLevel--;
 		}
