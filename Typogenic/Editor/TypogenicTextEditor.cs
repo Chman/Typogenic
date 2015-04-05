@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEditor;
 using System;
 
@@ -119,7 +120,7 @@ public class TypogenicTextEditor : Editor
 			Vector3 alignmentOffset = Vector3.zero;
 			if (src.Alignment == TTextAlignment.Center) alignmentOffset = new Vector3(-src.WordWrap * 0.5f, 0f, 0f);
 			else if (src.Alignment == TTextAlignment.Right) alignmentOffset = new Vector3(-src.WordWrap, 0f, 0f);
-				
+
 			Vector3 v1 = src.transform.TransformPoint(alignmentOffset);
 			Vector3 v2 = src.transform.TransformPoint(alignmentOffset + new Vector3(src.WordWrap, 0f, 0f));
 			Vector3 v3 = src.transform.TransformPoint(alignmentOffset + new Vector3(0f, -src.Height, 0f));
@@ -138,7 +139,11 @@ public class TypogenicTextEditor : Editor
 	{
 		GameObject gameObject = new GameObject("New Typogenic Text");
 		gameObject.AddComponent<TypogenicText>();
+		#if (UNITY_4_3 || UNITY_4_5 || UNITY_4_6)
 		gameObject.GetComponent<MeshRenderer>().castShadows = false;
+		#else
+		gameObject.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+		#endif
 		gameObject.GetComponent<MeshRenderer>().receiveShadows = false;
 		Selection.objects = new GameObject[1] { gameObject };
 		EditorApplication.ExecuteMenuItem("GameObject/Move To View");
