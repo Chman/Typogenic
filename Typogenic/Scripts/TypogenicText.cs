@@ -282,9 +282,9 @@ public class TypogenicText : MonoBehaviour
 		RefreshColliders();
 	}
 
-	void RefreshColliders() 
+	void RefreshColliders()
 	{
-		foreach (BoxCollider c in GetComponents<BoxCollider>()) 
+		foreach (BoxCollider c in GetComponents<BoxCollider>())
 		{
 			c.size = new Vector3(m_Mesh.bounds.size.x, m_Mesh.bounds.size.y, .1f);
 			c.center = m_Mesh.bounds.center;
@@ -337,10 +337,10 @@ public class TypogenicText : MonoBehaviour
 					continue;
 				}
 			}
-			else 
+			else
 			{
 				if (charCode == 92) // Backslash
-				{ 
+				{
 					inControlCode = true;
 					if (EnableClickSupport)
 					{
@@ -351,7 +351,7 @@ public class TypogenicText : MonoBehaviour
 			}
 
 			TGlyph glyph = Font.Glyphs.Get(charCode);
-			
+
 			if (glyph == null)
 				continue;
 
@@ -466,6 +466,52 @@ public class TypogenicText : MonoBehaviour
 		return width;
 	}
 
+	// Returns the string with line-breaks added everywhere it would wrap
+	public string GetWrappedText(string text)
+	{
+		if(WordWrap <= 0) return text;
+
+		text = Regex.Replace(text, @"\r\n", "\n");
+		string[] lines = Regex.Split(text, @"\n");
+
+		float cursorX = 0f;
+
+		for(int i = 0; i < lines.Length; i++)
+		{
+			List<string> words = new List<string>(lines[i].Split(' '));
+			cursorX = 0;
+
+			for(int j = 0; j < words.Count; j++)
+			{
+				string word = words[j];
+
+				if (Alignment == TTextAlignment.Right)
+					word = " " + word;
+				else
+					word += " ";
+
+				float wordWidth = GetStringWidth(word);
+				cursorX += wordWidth;
+
+				if(cursorX > WordWrap)
+				{
+					// Wrap this word to the next line
+					cursorX = wordWidth;
+					if(j > 0)
+						words[j - 1] += "\n";
+				}
+				else if(j > 0)
+				{
+					words[j - 1] += " ";
+				}
+			}
+
+			lines[i] = System.String.Join(System.String.Empty, words.ToArray());
+		}
+
+		return System.String.Join("\n", lines);
+	}
+
 	void OffsetStringPosition(List<int> vertexPointers, float offsetX)
 	{
 		if (Alignment == TTextAlignment.Right)
@@ -561,12 +607,12 @@ public class TypogenicText : MonoBehaviour
 		m_SubmeshTriangles[_currentMaterial].Add(index + 3);
 	}
 
-	void ClearGlyphBounds() 
+	void ClearGlyphBounds()
 	{
 		m_GlyphBounds.Clear();
 	}
-	
-	void StoreGlyphBounds(Bounds b) 
+
+	void StoreGlyphBounds(Bounds b)
 	{
 		m_GlyphBounds.Add(b);
 	}
@@ -588,8 +634,8 @@ public class TypogenicText : MonoBehaviour
 
 		return b;
 	}
-	
-	void AddPlaceholderGlyphBounds() 
+
+	void AddPlaceholderGlyphBounds()
 	{
 		// Adds a dummy glyph bounds, to keep the list's indices
 		// synchronized to the text string's indices.
@@ -631,12 +677,12 @@ public class TypogenicText : MonoBehaviour
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		Plane p = new Plane(-transform.forward, transform.position);
 
-		if (p.Raycast(ray, out distance)) 
+		if (p.Raycast(ray, out distance))
 		{
 			point = ray.GetPoint(distance);
 			index = GetGlyphIndexAtWorldPoint(point);
 
-			if (index > -1) 
+			if (index > -1)
 			{
 				BroadcastMessage(
 					"OnGlyphClicked",
