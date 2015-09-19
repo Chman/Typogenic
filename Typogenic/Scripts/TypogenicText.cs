@@ -237,11 +237,6 @@ public class TypogenicText : MonoBehaviour
 					}
 
 					cursorX = BlitString(word, cursorX, cursorY, vertexPointers);
-
-					if (EnableClickSupport)
-					{
-						AddPlaceholderGlyphBounds();
-					}
 				}
 
 				OffsetStringPosition(vertexPointers, cursorX);
