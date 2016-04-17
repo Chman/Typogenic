@@ -56,7 +56,9 @@ public class TypogenicText : MonoBehaviour
 	protected List<Bounds> m_GlyphBounds = new List<Bounds>();
 	protected List<int>[] m_SubmeshTriangles;
 
-
+	// Cache components since they are no longer directly exposed:
+	protected new Renderer renderer;
+	
 	// Not the best way to track changes but Unity can't serialize properties,
 	// so it'll do the job just fine for now.
 	string _text;
@@ -105,6 +107,11 @@ public class TypogenicText : MonoBehaviour
 
 	void OnEnable()
 	{
+		if (renderer == null)
+		{
+			renderer = GetComponent<Renderer>();
+		}
+		
 		GetComponent<MeshFilter>().mesh = m_Mesh = new Mesh();
 		m_Mesh.name = "Text Mesh";
 		m_Mesh.hideFlags = HideFlags.HideAndDontSave;
