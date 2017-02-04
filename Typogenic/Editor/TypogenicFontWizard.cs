@@ -27,7 +27,7 @@ public class TypogenicFontWizard : ScriptableWizard
 		{
 			string atlasPath = AssetDatabase.GetAssetPath(Atlas);
 			TextureImporter importer = (TextureImporter)AssetImporter.GetAtPath(atlasPath);
-			importer.textureType = TextureImporterType.Advanced;
+			importer.textureType = TextureImporterType.Default;
 			importer.mipmapEnabled = false;
 			importer.anisoLevel = 4;
 			importer.filterMode = FilterMode.Bilinear;

@@ -51,7 +51,11 @@ public class TypogenicTextEditor : Editor
 	{
 		serializedObject.Update();
 
-		EditorGUIUtility.LookLikeControls();
+		/*
+		 *	This method has been deprecated:
+		 *
+		 *	EditorGUIUtility.LookLikeControls();
+		 */
 
 		EditorGUILayout.PropertyField(m_Font);
 		EditorGUILayout.PropertyField(m_GenerateNormals);
