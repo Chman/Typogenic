@@ -1,3 +1,12 @@
+
+1.6
+- Fixed bugs as a result of Unity API changes.
+- Changed the folder structure for demos, so they are contained in folders with their related scripts and materials for better modularity.
+- Changed the 'Demo 1' to better reflect different alignment options, by adding a right alignment section.
+- Changed the 'Demo 4' by making the light source move back and fourth, to better show the light effect.
+- Changed the 'Demo 2' to also show horizontal and vertical gradients.
+- Updated documentation.
+
 1.5
 - Better click support in 3D space (Michael McCollum).
 - Added "Typogenic Manual" to the help menu for quick documentation access.
