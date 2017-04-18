@@ -10,7 +10,7 @@ Instructions
 
 Copy the `Typogenic` and `Gizmos` folders into your project or import `Typogenic.unitypackage`.
 
-<s>You can also import it from the [Asset Store](https://www.assetstore.unity3d.com/en/#!/content/19182).<s>
+<s>You can also import it from the [Asset Store](https://www.assetstore.unity3d.com/en/#!/content/19182).</s>
 
 Read the online [documentation](http://thomashourdel.com/typogenic/doc/) for more information.
 
