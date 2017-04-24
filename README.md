@@ -21,6 +21,7 @@ Contributors
 
   - Michael McCollum (gnustoboz)
   - StarManta
+  - DeeNaxic
 
 License
 -------
