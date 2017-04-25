@@ -389,11 +389,7 @@ public class TypogenicText : MonoBehaviour
 			// Only need to store glyph bounds if click support is enabled.
 			if (EnableClickSupport)
 			{
-
-				// Click bounds for glyphs are based on allocated space, not rendered space.
-				// Otherwise we'll end up with unclickable dead zones between glyphs.
-				r.width = glyph.xAdvance * Size;
-				// And Y coordinates are just not handled the same at all.
+				// Y coordinates are just not handled the same at all.
 				r.y = -cursorY - r.height - glyph.yOffset * Size;
 
 
